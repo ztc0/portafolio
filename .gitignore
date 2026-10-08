@@ -1,0 +1,11 @@
+# Local Pi runtime state
+.atl/
+
+node_modules/
+.astro/
+dist/
+coverage/
+test-results/
+playwright-report/
+blob-report/
+.artifacts/
