@@ -1,0 +1,14 @@
+---
+import ProfessionalDocument from "../../layouts/ProfessionalDocument.astro";
+import SemanticProfessional from "../../professional/SemanticProfessional.astro";
+import { PROFESSIONAL_LOCALE_RECORDS } from "../../professional/records";
+
+const records = PROFESSIONAL_LOCALE_RECORDS.es;
+---
+
+<ProfessionalDocument
+  lang={records.locale}
+  title={`${records.identity.name} | ${records.identity.role}`}
+>
+  <SemanticProfessional records={records} />
+</ProfessionalDocument>

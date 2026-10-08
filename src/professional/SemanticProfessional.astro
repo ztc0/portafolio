@@ -1,0 +1,298 @@
+---
+import { PresentationRail } from "./components/PresentationRail";
+import type { ProfessionalLocaleRecords } from "./schema";
+
+interface Props {
+  readonly records: ProfessionalLocaleRecords;
+}
+
+const { records } = Astro.props;
+
+const UI_COPY = {
+  es: {
+    directNavigation: "Navegación profesional directa",
+    fallbackHeading: "Presentación ligera",
+    fallbackDescription: "El acceso profesional directo sigue disponible.",
+    identity: "Identidad",
+    knownAs: "Conocido como",
+    role: "Rol",
+    focus: "Enfoque",
+    motivation: "Motivación",
+    projects: "Proyectos",
+    projectStage: "Planificación, diseño y en curso",
+    skills: "Habilidades y CV",
+    contact: "Contacto",
+    contactStatus: "El contacto sigue sin resolverse.",
+    provisionalLink: "Enlace provisional a Google (no es contacto)",
+    close: "Cierre profesional",
+    closeDescription: "El recorrido profesional continúa disponible desde la navegación directa.",
+    localeFor: "Idioma para",
+    presentationRail: "Presentación profesional",
+    presentationRailNavigation: "Navegación de presentación profesional",
+    retractPresentation: "Retraer presentación",
+    restorePresentation: "Restaurar presentación",
+    worldReady: "Mundo listo",
+    worldPaused: "Mundo en pausa",
+    worldFallback: "Presentación ligera",
+    enterWorld: "Entrar al mundo",
+    pauseWorld: "Pausar mundo",
+    resumeWorld: "Reanudar mundo",
+    exitWorld: "Salir del mundo",
+  },
+  en: {
+    directNavigation: "Direct professional navigation",
+    fallbackHeading: "Lightweight presentation",
+    fallbackDescription: "Direct professional access remains available.",
+    identity: "Identity",
+    knownAs: "Known as",
+    role: "Role",
+    focus: "Focus",
+    motivation: "Motivation",
+    projects: "Projects",
+    projectStage: "Planning, design, and in progress",
+    skills: "Skills and CV",
+    contact: "Contact",
+    contactStatus: "Contact remains unresolved.",
+    provisionalLink: "Temporary Google link (not a contact link)",
+    close: "Professional close",
+    closeDescription: "The professional route remains available through direct navigation.",
+    localeFor: "Language for",
+    presentationRail: "Professional presentation",
+    presentationRailNavigation: "Professional presentation navigation",
+    retractPresentation: "Retract presentation",
+    restorePresentation: "Restore presentation",
+    worldReady: "World ready",
+    worldPaused: "World paused",
+    worldFallback: "Lightweight presentation",
+    enterWorld: "Enter world",
+    pauseWorld: "Pause world",
+    resumeWorld: "Resume world",
+    exitWorld: "Exit world",
+  },
+} as const;
+
+const copy = UI_COPY[records.locale];
+const projectStage =
+  records.project.stage === "planning-design-in-progress"
+    ? copy.projectStage
+    : records.project.stage;
+const contactStatus =
+  records.contact.status === "unresolved" ? copy.contactStatus : records.contact.status;
+const functions = [
+  {
+    id: records.identity.id,
+    zoneId: records.identity.zone,
+    href: "#identity",
+    label: copy.identity,
+  },
+  { id: records.project.id, zoneId: records.project.zone, href: "#projects", label: copy.projects },
+  { id: records.skills.id, zoneId: records.skills.zone, href: "#skills", label: copy.skills },
+  { id: records.contact.id, zoneId: records.contact.zone, href: "#contact", label: copy.contact },
+  { id: records.close.id, zoneId: records.close.zone, href: "#close", label: copy.close },
+] as const;
+---
+
+<header
+  id="professional-presentation-session"
+  class="presentation-frame"
+  data-presentation-session
+  data-locale={records.locale}
+  data-current-function-id={records.identity.id}
+  data-current-zone-id={records.identity.zone}
+>
+  <aside class="lightweight-fallback" data-lightweight-fallback aria-labelledby="fallback-heading">
+    <h2 id="fallback-heading">{copy.fallbackHeading}</h2>
+    <p>{copy.fallbackDescription}</p>
+  </aside>
+
+  <div class="world-surface" data-world-canvas aria-hidden="true"></div>
+  <div class="world-controls" data-world-controls>
+    <p data-world-status role="status" aria-live="polite">
+      {copy.worldFallback}
+    </p>
+    <button data-world-start type="button">
+      {copy.enterWorld}
+    </button>
+    <button data-world-pause type="button" disabled>
+      {copy.pauseWorld}
+    </button>
+    <button data-world-exit type="button">
+      {copy.exitWorld}
+    </button>
+  </div>
+
+  <nav class="direct-navigation" data-direct-navigation aria-label={copy.directNavigation}>
+    <ul>
+      {functions.map((functionEntry) => (
+        <li>
+          <a href={functionEntry.href}>{functionEntry.label}</a>
+        </li>
+      ))}
+    </ul>
+  </nav>
+
+  <PresentationRail
+    client:load
+    locale={records.locale}
+    functions={functions}
+    railLabel={copy.presentationRail}
+    navigationLabel={copy.presentationRailNavigation}
+    retractLabel={copy.retractPresentation}
+    restoreLabel={copy.restorePresentation}
+    sessionHostId="professional-presentation-session"
+  />
+</header>
+
+<script>
+  import { startPresentationSession } from "./presentationSession";
+
+  const host = document.querySelector<HTMLElement>("[data-presentation-session]");
+  if (host) {
+    const locale = host.dataset.locale;
+    const currentFunctionId = host.dataset.currentFunctionId;
+    const currentZoneId = host.dataset.currentZoneId;
+
+    if (locale && currentFunctionId && currentZoneId) {
+      startPresentationSession(
+        host,
+        {
+          locale: locale as "es" | "en",
+          currentFunctionId: currentFunctionId as never,
+          currentZoneId: currentZoneId as never,
+        },
+        {
+          ready: locale === "es" ? "Mundo listo" : "World ready",
+          paused: locale === "es" ? "Mundo en pausa" : "World paused",
+          fallback: locale === "es" ? "Presentación ligera" : "Lightweight presentation",
+          pause: locale === "es" ? "Pausar mundo" : "Pause world",
+          resume: locale === "es" ? "Reanudar mundo" : "Resume world",
+        },
+      );
+    }
+  }
+</script>
+
+<main id="main-content" tabindex="-1">
+  <section id="identity" aria-labelledby="identity-heading">
+    <div class="section-heading">
+      <h1 id="identity-heading">{records.identity.name}</h1>
+    </div>
+    <dl class="identity-details">
+      <div>
+        <dt>{copy.knownAs}</dt>
+        <dd>{records.identity.knownAs}</dd>
+      </div>
+      <div>
+        <dt>{copy.role}</dt>
+        <dd>{records.identity.role}</dd>
+      </div>
+      <div>
+        <dt>{copy.focus}</dt>
+        <dd>{records.identity.focus}</dd>
+      </div>
+      <div>
+        <dt>{copy.motivation}</dt>
+        <dd>{records.identity.motivation}</dd>
+      </div>
+    </dl>
+    <nav
+      class="locale-switcher"
+      data-locale-switcher
+      aria-label={`${copy.localeFor} ${copy.identity}`}
+    >
+      <a href="/es/#identity" aria-current={records.locale === "es" ? "page" : undefined}>
+        Español
+      </a>
+      <a href="/en/#identity" aria-current={records.locale === "en" ? "page" : undefined}>
+        English
+      </a>
+    </nav>
+  </section>
+
+  <section id="projects" aria-labelledby="projects-heading">
+    <div class="section-heading">
+      <h2 id="projects-heading">{copy.projects}</h2>
+    </div>
+    <article>
+      <h3>{records.project.title}</h3>
+      <p class="record-status">{projectStage}</p>
+    </article>
+    <nav
+      class="locale-switcher"
+      data-locale-switcher
+      aria-label={`${copy.localeFor} ${copy.projects}`}
+    >
+      <a href="/es/#projects" aria-current={records.locale === "es" ? "page" : undefined}>
+        Español
+      </a>
+      <a href="/en/#projects" aria-current={records.locale === "en" ? "page" : undefined}>
+        English
+      </a>
+    </nav>
+  </section>
+
+  <section id="skills" aria-labelledby="skills-heading">
+    <div class="section-heading">
+      <h2 id="skills-heading">{copy.skills}</h2>
+    </div>
+    <ul class="skills-list">
+      {records.skills.skills.map((skill) => (
+        <li>{skill}</li>
+      ))}
+    </ul>
+    <p class="record-status">{records.cv.label}</p>
+    <nav
+      class="locale-switcher"
+      data-locale-switcher
+      aria-label={`${copy.localeFor} ${copy.skills}`}
+    >
+      <a href="/es/#skills" aria-current={records.locale === "es" ? "page" : undefined}>
+        Español
+      </a>
+      <a href="/en/#skills" aria-current={records.locale === "en" ? "page" : undefined}>
+        English
+      </a>
+    </nav>
+  </section>
+
+  <section id="contact" aria-labelledby="contact-heading">
+    <div class="section-heading">
+      <h2 id="contact-heading">{copy.contact}</h2>
+    </div>
+    <p class="record-status">{contactStatus}</p>
+    <p>
+      <a href="https://www.google.com/">{copy.provisionalLink}</a>
+    </p>
+    <nav
+      class="locale-switcher"
+      data-locale-switcher
+      aria-label={`${copy.localeFor} ${copy.contact}`}
+    >
+      <a href="/es/#contact" aria-current={records.locale === "es" ? "page" : undefined}>
+        Español
+      </a>
+      <a href="/en/#contact" aria-current={records.locale === "en" ? "page" : undefined}>
+        English
+      </a>
+    </nav>
+  </section>
+
+  <section id="close" aria-labelledby="close-heading">
+    <div class="section-heading">
+      <h2 id="close-heading">{copy.close}</h2>
+    </div>
+    <p>{copy.closeDescription}</p>
+    <nav
+      class="locale-switcher"
+      data-locale-switcher
+      aria-label={`${copy.localeFor} ${copy.close}`}
+    >
+      <a href="/es/#close" aria-current={records.locale === "es" ? "page" : undefined}>
+        Español
+      </a>
+      <a href="/en/#close" aria-current={records.locale === "en" ? "page" : undefined}>
+        English
+      </a>
+    </nav>
+  </section>
+</main>

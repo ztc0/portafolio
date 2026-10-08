@@ -1,0 +1,28 @@
+---
+import type { ProfessionalLocale } from "../professional/schema";
+import "../styles/global.css";
+
+interface Props {
+  readonly lang: ProfessionalLocale;
+  readonly title: string;
+}
+
+const { lang, title } = Astro.props;
+const skipLinkText =
+  lang === "es" ? "Saltar al contenido profesional" : "Skip to professional content";
+---
+
+<!doctype html>
+<html lang={lang}>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width" />
+    <title>{title}</title>
+  </head>
+  <body>
+    <a class="skip-link" href="#main-content">
+      {skipLinkText}
+    </a>
+    <slot />
+  </body>
+</html>
