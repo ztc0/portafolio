@@ -1,0 +1,21 @@
+---
+import ProfessionalDocument from "../layouts/ProfessionalDocument.astro";
+import SemanticProfessional from "../professional/SemanticProfessional.astro";
+import { PROFESSIONAL_LOCALE_RECORDS } from "../professional/records";
+
+const records = PROFESSIONAL_LOCALE_RECORDS.en;
+---
+
+<ProfessionalDocument
+  lang={records.locale}
+  title={`${records.identity.name} | ${records.identity.role}`}
+>
+  <SemanticProfessional records={records} />
+  <script>
+    const preferredLanguage = navigator.languages?.[0] || navigator.language;
+    if (/^es(?:-|$)/i.test(preferredLanguage)) {
+      const destination = new URL(`${import.meta.env.BASE_URL}es/`, location.origin);
+      location.replace(`${destination.pathname}${window.location.search}${window.location.hash}`);
+    }
+  </script>
+</ProfessionalDocument>
